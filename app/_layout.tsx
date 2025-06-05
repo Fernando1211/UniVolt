@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons, MaterialIcons, Entypo } from '@expo/vector-icons';
-
+ 
 export default function Layout() {
   return (
     <Tabs screenOptions={{ headerShown: false }}>
@@ -13,9 +13,9 @@ export default function Layout() {
           ),
         }}
       />
-
+ 
      
-
+ 
       <Tabs.Screen
         name="pedido"
         options={{
@@ -25,27 +25,7 @@ export default function Layout() {
           ),
         }}
       />
-
-      <Tabs.Screen
-        name="oportunidades"
-        options={{
-          title: 'Ajudar',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="participacoes"
-        options={{
-          title: 'Minhas Ações',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkmark-done-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
+ 
       <Tabs.Screen
         name="cadastroUsuario"
         options={{
@@ -55,7 +35,7 @@ export default function Layout() {
           ),
         }}
       />
-
+ 
       <Tabs.Screen
         name="cadastroVoluntario"
         options={{
@@ -65,7 +45,7 @@ export default function Layout() {
           ),
         }}
       />
-
+ 
       <Tabs.Screen
         name="cadastroOrg"
         options={{
@@ -76,16 +56,16 @@ export default function Layout() {
         }}
       />
        <Tabs.Screen
-        name="devs"
+        name="dev"
         options={{
-          title: 'Devs',
+          title: 'Dev',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
         }}
       />
     </Tabs>
-    
-    
+   
+   
   );
 }

@@ -3,49 +3,30 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
-
+ 
 const { width } = Dimensions.get('window');
-
+ 
 const menuItems = [
   { label: 'Usuário', icon: 'person', route: '/cadastroUsuario' },
   { label: 'Voluntário', icon: 'volunteer-activism', route: '/cadastroVoluntario' },
   { label: 'Organizações', icon: 'apartment', route: '/cadastroOrg' },
   { label: 'Pedidos', icon: 'assignment', route: '/pedido' },
-  { label: 'Participações', icon: 'group', route: '/participacoes' },
   { label: 'Oportunidades', icon: 'work', route: '/oportunidades' },
 ];
-
+ 
 export default function Home() {
-  const router = useRouter();
-
   return (
     <LinearGradient colors={['#4A90E2', '#357ABD']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.header}>Voluntariado App</Text>
         <Text style={styles.subheader}>Conectando pessoas e oportunidades</Text>
-
-        <View style={styles.grid}>
-          {menuItems.map(({ label, icon, route }) => (
-            <TouchableOpacity
-              key={route}
-              style={styles.card}
-              activeOpacity={0.8}
-              onPress={() => router.push(route)}
-            >
-              <MaterialIcons name={icon} size={48} color="#357ABD" style={styles.cardIcon} />
-              <Text style={styles.cardLabel}>{label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.footer}>© 2025 Sua Organização • Todos os direitos reservados</Text>
       </ScrollView>
     </LinearGradient>
   );
 }
-
+ 
 const CARD_SIZE = (width - 72) / 2; // considerando padding horizontal e espaçamento
-
+ 
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,

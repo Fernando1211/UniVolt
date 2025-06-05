@@ -54,12 +54,13 @@ const styles = StyleSheet.create({
 
     },
     name: {
-      color: "white",
+      color: "",
       fontWeight: "bold",
       fontSize: 16,
+      
     },
     username: {
-      color: "#ddd",
+      color: "#",
       fontSize: 13,
     },
     links: {
