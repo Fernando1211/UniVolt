@@ -40,8 +40,8 @@ export default function CadastroVoluntario() {
     setLoadingList(true);
     try {
       const [resUsuarios, resVoluntarios] = await Promise.all([
-        fetch('https://localhost:8080/usuarios'),
-        fetch('https://localhost:8080/voluntarios'),
+        fetch('http://10.3.46.35/users'),
+        fetch('http://10.3.46.35/users'),
       ]);
       if (!resUsuarios.ok || !resVoluntarios.ok) throw new Error('Falha ao carregar dados');
       const usuariosJson = await resUsuarios.json();
@@ -62,7 +62,7 @@ export default function CadastroVoluntario() {
     }
     setLoading(true);
     try {
-      const res = await fetch('https://localhost:8080/voluntarios', {
+      const res = await fetch('http://10.3.46.35/voluntarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_usuario: usuarioSelecionado, disponibilidade }),
@@ -86,7 +86,7 @@ export default function CadastroVoluntario() {
         text: 'Sim',
         onPress: async () => {
           try {
-            const res = await fetch(`https://localhost:8080/voluntarios/${id_voluntario}`, {
+            const res = await fetch(`http://10.3.46.35/voluntarios/${id_voluntario}`, {
               method: 'DELETE',
             });
             if (!res.ok) throw new Error('Falha ao deletar voluntário');

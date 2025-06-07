@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
- 
+
 type Usuario = {
   id_usuario: number;
   nome: string;
@@ -19,55 +20,88 @@ type Usuario = {
   telefone?: string;
   localizacao?: string;
   habilidades?: string;
+  senha?: string;
+  role?: 'ADMIN' | 'USER';
 };
- 
+
+const API_URL = 'http://10.3.46.35:8080';
+
 export default function CadastroUsuario() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [localizacao, setLocalizacao] = useState('');
-  const [habilidades, setHabilidades] = useState('');
+  const [form, setForm] = useState<Usuario>({
+    id_usuario: 0,
+    nome: '',
+    email: '',
+    telefone: '',
+    localizacao: '',
+    habilidades: '',
+    senha: '',
+    role: 'USER',
+  });
+
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
- 
-  useEffect(() => {
-    fetchUsuarios();
-  }, []);
- 
-  const fetchUsuarios = async () => {
+
+  const fetchUsuarios = useCallback(async () => {
     setLoadingList(true);
     try {
-      const res = await fetch('https://localhost:8080/usuarios');
-      if (!res.ok) throw new Error('Falha ao carregar usuários');
-      const data = await res.json();
+      const res = await fetch(`${API_URL}/users`);
+  
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Erro ${res.status}: ${errorText || res.statusText}`);
+      }
+  
+      const text = await res.text();
+  
+      if (!text) {
+        setUsuarios([]); // Nenhum usuário retornado
+        return;
+      }
+  
+      const data = JSON.parse(text);
       setUsuarios(data);
     } catch (error) {
-      Alert.alert('Erro', error instanceof Error ? error.message : 'Erro desconhecido');
+      Alert.alert('Erro', error instanceof Error ? error.message : 'Erro ao buscar usuários');
     } finally {
       setLoadingList(false);
     }
+  }, []);
+  useEffect(() => {
+    fetchUsuarios();
+  }, [fetchUsuarios]);
+
+  const clearForm = () => {
+    setForm({
+      id_usuario: 0,
+      nome: '',
+      email: '',
+      telefone: '',
+      localizacao: '',
+      habilidades: '',
+      senha: '',
+      role: 'USER',
+    });
   };
- 
+
   const handleCreate = async () => {
-    if (!nome || !email) {
-      Alert.alert('Erro', 'Nome e email são obrigatórios');
+    const { nome, email, senha } = form;
+
+    if (!nome || !email || !senha) {
+      Alert.alert('Erro', 'Nome, email e senha são obrigatórios');
       return;
     }
+
     setLoading(true);
     try {
-      const res = await fetch('https://localhost:8080/usuarios', {
+      const res = await fetch(`${API_URL}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, telefone, localizacao, habilidades }),
+        body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error('Falha ao criar usuário');
-      Alert.alert('Sucesso', 'Usuário criado');
-      setNome('');
-      setEmail('');
-      setTelefone('');
-      setLocalizacao('');
-      setHabilidades('');
+      if (!res.ok) throw new Error('Erro ao criar usuário');
+      Alert.alert('Sucesso', 'Usuário cadastrado');
+      clearForm();
       fetchUsuarios();
     } catch (error) {
       Alert.alert('Erro', error instanceof Error ? error.message : 'Erro desconhecido');
@@ -75,7 +109,7 @@ export default function CadastroUsuario() {
       setLoading(false);
     }
   };
- 
+
   const handleDelete = (id_usuario: number) => {
     Alert.alert('Confirmação', 'Deseja deletar este usuário?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -83,10 +117,10 @@ export default function CadastroUsuario() {
         text: 'Sim',
         onPress: async () => {
           try {
-            const res = await fetch(`https://localhost:8080/usuarios/${id_usuario}`, {
+            const res = await fetch(`${API_URL}/users/${id_usuario}`, {
               method: 'DELETE',
             });
-            if (!res.ok) throw new Error('Falha ao deletar usuário');
+            if (!res.ok) throw new Error('Erro ao deletar');
             Alert.alert('Sucesso', 'Usuário deletado');
             fetchUsuarios();
           } catch (error) {
@@ -96,89 +130,52 @@ export default function CadastroUsuario() {
       },
     ]);
   };
- 
-  if (loadingList)
+
+  const renderInput = (label: string, key: keyof Usuario, placeholder: string, props = {}) => (
+    <>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        //value={form[key] || ''}
+        onChangeText={(text) => setForm({ ...form, [key]: text })}
+        placeholder={placeholder}
+        {...props}
+      />
+    </>
+  );
+
+  if (loadingList) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3366FF" />
       </View>
     );
- 
+  }
+
   return (
-    <View style={styles.container}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.formContainer}
-        showsVerticalScrollIndicator={false}
-      >
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Cadastro de Usuário</Text>
- 
-        <Text style={styles.label}>Nome *</Text>
-        <TextInput
-          style={styles.input}
-          value={nome}
-          onChangeText={setNome}
-          placeholder="Digite o nome"
-          placeholderTextColor="#a0a0a0"
-        />
- 
-        <Text style={styles.label}>Email *</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Digite o e-mail"
-          placeholderTextColor="#a0a0a0"
-          keyboardType="email-address"
-        />
- 
-        <Text style={styles.label}>Telefone</Text>
-        <TextInput
-          style={styles.input}
-          value={telefone}
-          onChangeText={setTelefone}
-          placeholder="(00) 00000-0000"
-          placeholderTextColor="#a0a0a0"
-          keyboardType="phone-pad"
-        />
- 
-        <Text style={styles.label}>Localização</Text>
-        <TextInput
-          style={styles.input}
-          value={localizacao}
-          onChangeText={setLocalizacao}
-          placeholder="Cidade ou estado"
-          placeholderTextColor="#a0a0a0"
-        />
- 
-        <Text style={styles.label}>Habilidades</Text>
-        <TextInput
-          style={styles.input}
-          value={habilidades}
-          onChangeText={setHabilidades}
-          placeholder="Digite suas habilidades"
-          placeholderTextColor="#a0a0a0"
-        />
- 
+
+        {renderInput('Nome *', 'nome', 'Digite o nome')}
+        {renderInput('Email *', 'email', 'Digite o e-mail', { keyboardType: 'email-address' })}
+        {renderInput('Senha *', 'senha', 'Digite a senha', { secureTextEntry: true })}
+        {renderInput('Perfil (ADMIN ou USER) *', 'role', 'ADMIN ou USER')}
+        {renderInput('Telefone', 'telefone', '(00) 00000-0000', { keyboardType: 'phone-pad' })}
+        {renderInput('Localização', 'localizacao', 'Cidade ou estado')}
+        {renderInput('Habilidades', 'habilidades', 'Digite suas habilidades')}
+
         {loading ? (
-          <ActivityIndicator
-            size="small"
-            color="#3366FF"
-            style={{ marginTop: 20 }}
-          />
+          <ActivityIndicator size="small" color="#3366FF" style={{ marginTop: 20 }} />
         ) : (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleCreate}
-            activeOpacity={0.85}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleCreate}>
             <Text style={styles.buttonText}>Criar Usuário</Text>
           </TouchableOpacity>
         )}
- 
+
         <Text style={styles.listTitle}>Usuários Cadastrados</Text>
       </ScrollView>
- 
+
       <FlatList
         data={usuarios}
         keyExtractor={(item) => item.id_usuario.toString()}
@@ -189,51 +186,24 @@ export default function CadastroUsuario() {
             <Text style={styles.cardText}>Telefone: {item.telefone || '—'}</Text>
             <Text style={styles.cardText}>Localização: {item.localizacao || '—'}</Text>
             <Text style={styles.cardText}>Habilidades: {item.habilidades || '—'}</Text>
-            <TouchableOpacity
-              onPress={() => handleDelete(item.id_usuario)}
-              style={styles.deleteBtn}
-              activeOpacity={0.75}
-            >
+            <Text style={styles.cardText}>Perfil: {item.role || 'USER'}</Text>
+            <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(item.id_usuario)}>
               <Text style={styles.deleteBtnText}>Deletar</Text>
             </TouchableOpacity>
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 40, paddingTop: 10 }}
-        showsVerticalScrollIndicator={false}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
- 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#e9f0ff',
-    paddingTop: Platform.OS === 'android' ? 25 : 45,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: '#e9f0ff',
-  },
-  formContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#1a237e',
-    marginBottom: 28,
-    alignSelf: 'center',
-    letterSpacing: 0.8,
-  },
-  label: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#303f9f',
-    marginBottom: 8,
-  },
+  container: { flex: 1, backgroundColor: '#e9f0ff', paddingTop: Platform.OS === 'android' ? 25 : 45 },
+  loadingContainer: { flex: 1, justifyContent: 'center', backgroundColor: '#e9f0ff' },
+  formContainer: { paddingHorizontal: 24, paddingBottom: 20 },
+  title: { fontSize: 30, fontWeight: '800', color: '#1a237e', marginBottom: 28, alignSelf: 'center' },
+  label: { fontSize: 17, fontWeight: '600', color: '#303f9f', marginBottom: 8 },
   input: {
     backgroundColor: '#fff',
     paddingVertical: 14,
@@ -261,19 +231,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 18,
-    letterSpacing: 1,
-  },
-  listTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-    color: '#1a237e',
-    paddingLeft: 24,
-  },
+  buttonText: { color: '#fff', fontWeight: '800', fontSize: 18 },
+  listTitle: { fontSize: 24, fontWeight: '700', marginBottom: 16, color: '#1a237e', paddingLeft: 24 },
   card: {
     backgroundColor: '#fff',
     padding: 20,
@@ -286,17 +245,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  cardTitle: {
-    fontWeight: '800',
-    fontSize: 20,
-    color: '#1a237e',
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 16,
-    color: '#4250a1',
-    marginBottom: 6,
-  },
+  cardTitle: { fontWeight: '800', fontSize: 20, color: '#1a237e', marginBottom: 8 },
+  cardText: { fontSize: 16, color: '#4250a1', marginBottom: 6 },
   deleteBtn: {
     marginTop: 12,
     backgroundColor: '#d32f2f',
@@ -310,9 +260,5 @@ const styles = StyleSheet.create({
     shadowRadius: 7,
     elevation: 5,
   },
-  deleteBtnText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 15,
-  },
+  deleteBtnText: { color: 'white', fontWeight: '700', fontSize: 15 },
 });
