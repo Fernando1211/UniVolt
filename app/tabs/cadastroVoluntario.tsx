@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Usuario = {
   id_usuario: number;
@@ -25,29 +25,30 @@ type Voluntario = {
 };
 
 export default function CadastroVoluntario() {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [voluntarios, setVoluntarios] = useState<Voluntario[]>([]);
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(null);
   const [disponibilidade, setDisponibilidade] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    fetchVoluntarios();
   }, []);
 
-  const fetchData = async () => {
+  const fetchVoluntarios = async () => {
     setLoadingList(true);
     try {
-      const [resUsuarios, resVoluntarios] = await Promise.all([
-        fetch('http://192.168.15.38:8080/users'),
-        fetch('http://192.168.15.38:8080/users'),
-      ]);
-      if (!resUsuarios.ok || !resVoluntarios.ok) throw new Error('Falha ao carregar dados');
-      const usuariosJson = await resUsuarios.json();
-      const voluntariosJson = await resVoluntarios.json();
-      setUsuarios(usuariosJson);
-      setVoluntarios(voluntariosJson);
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const res = await fetch('http://192.168.15.38:8080/voluntarios', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('Erro ao carregar voluntários');
+      const data = await res.json();
+      setVoluntarios(data);
     } catch (error) {
       Alert.alert('Erro', error instanceof Error ? error.message : 'Erro desconhecido');
     } finally {
@@ -56,22 +57,29 @@ export default function CadastroVoluntario() {
   };
 
   const handleCreate = async () => {
-    if (!usuarioSelecionado || !disponibilidade.trim()) {
-      Alert.alert('Erro', 'Selecione um usuário e informe disponibilidade');
+    if (!disponibilidade.trim()) {
+      Alert.alert('Erro', 'Informe a disponibilidade');
       return;
     }
+
     setLoading(true);
     try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
       const res = await fetch('http://192.168.15.38:8080/voluntarios', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_usuario: usuarioSelecionado, disponibilidade }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ disponibilidade }),
       });
+
       if (!res.ok) throw new Error('Falha ao criar voluntário');
       Alert.alert('Sucesso', 'Voluntário criado');
-      setUsuarioSelecionado(null);
       setDisponibilidade('');
-      fetchData();
+      fetchVoluntarios();
     } catch (error) {
       Alert.alert('Erro', error instanceof Error ? error.message : 'Erro desconhecido');
     } finally {
@@ -86,12 +94,19 @@ export default function CadastroVoluntario() {
         text: 'Sim',
         onPress: async () => {
           try {
-            const res = await fetch('http://192.168.15.38:8080/voluntarios/${id_voluntario}', {
+            const token = await AsyncStorage.getItem('token');
+            if (!token) throw new Error('Usuário não autenticado');
+
+            const res = await fetch(`http://192.168.15.38:8080/voluntarios/${id_voluntario}`, {
               method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
             });
+
             if (!res.ok) throw new Error('Falha ao deletar voluntário');
             Alert.alert('Sucesso', 'Voluntário deletado');
-            fetchData();
+            fetchVoluntarios();
           } catch (error) {
             Alert.alert('Erro', error instanceof Error ? error.message : 'Erro ao deletar');
           }
@@ -112,20 +127,6 @@ export default function CadastroVoluntario() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Cadastro de Voluntário</Text>
-
-        <Text style={styles.label}>Usuário *</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={usuarioSelecionado}
-            onValueChange={(value) => setUsuarioSelecionado(value)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Selecione um usuário" value={null} />
-            {usuarios.map((u) => (
-              <Picker.Item key={u.id_usuario} label={u.nome} value={u.id_usuario} />
-            ))}
-          </Picker>
-        </View>
 
         <Text style={styles.label}>Disponibilidade *</Text>
         <TextInput

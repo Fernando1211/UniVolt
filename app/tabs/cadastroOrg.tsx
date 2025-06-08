@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Organizacao = {
   id_organizacao: number;
@@ -20,7 +21,7 @@ type Organizacao = {
   contato: string;
 };
 
-const tipos = ['ONG', 'Prefeitura', 'Empresa', 'Outros'];
+const tipos = ['ONG', 'Prefeitura', 'Empresa'];
 
 export default function CadastroOrg() {
   const [organizacoes, setOrganizacoes] = useState<Organizacao[]>([]);
@@ -37,8 +38,18 @@ export default function CadastroOrg() {
 
   const fetchOrganizacoes = async () => {
     setLoadingList(true);
+    const token = await AsyncStorage.getItem('token');
     try {
-      const res = await fetch('http://192.168.15.38:8080/organizacoes');
+    
+
+const res = await fetch(`http://192.168.15.8:8080/organizacoes`, {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+});
+
       if (!res.ok) throw new Error('Erro ao carregar organizações');
       const data = await res.json();
       setOrganizacoes(data);
@@ -56,9 +67,16 @@ export default function CadastroOrg() {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://192.168.15.38:8080/organizacoes', {
+      const token = AsyncStorage.getItem('token');
+      const res = await fetch('http://192.168.15.8:8080/organizacoes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}`
+
+
+         },
+
         body: JSON.stringify({ nome, tipo, contato }),
       });
       if (!res.ok) throw new Error('Erro ao cadastrar organização');
@@ -81,7 +99,7 @@ export default function CadastroOrg() {
         text: 'Sim',
         onPress: async () => {
           try {
-            const res = await fetch('http://192.168.15.38:8080/${id_organizacao}', {
+            const res = await fetch('http://192.168.15.8:8080/${id_organizacao}', {
               method: 'DELETE',
             });
             if (!res.ok) throw new Error('Erro ao deletar organização');

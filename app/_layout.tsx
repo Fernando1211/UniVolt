@@ -1,4 +1,4 @@
-// app/_layout.tsx
+
 import { Slot, Redirect, useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';

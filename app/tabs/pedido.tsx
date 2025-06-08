@@ -11,34 +11,44 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 
 type Pedido = {
   id_pedido: number;
   titulo: string;
   descricao: string;
-  prioridade: "ALTA" | "MEDIA" | "BAIXA";
 };
 
-const prioridades = ["ALTA", "MEDIA", "BAIXA"];
+type Organizacao = {
+  id: number;
+  nome: string;
+};
 
 export default function CadastroPedido() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [prioridade, setPrioridade] = useState<"ALTA" | "MEDIA" | "BAIXA" | null>(null);
-
+  const [organizacoes, setOrganizacoes] = useState<Organizacao[]>([]);
+  const [organizacaoSelecionada, setOrganizacaoSelecionada] = useState<number | null>(null);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
 
   useEffect(() => {
     fetchPedidos();
+    fetchOrganizacoes();
   }, []);
 
   const fetchPedidos = async () => {
     setLoadingList(true);
     try {
-      const res = await fetch("http://192.168.15.38:8080/pedidos");
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Usuário não autenticado");
+
+      const res = await fetch("http://192.168.15.8:8080/pedidos", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       if (!res.ok) throw new Error("Falha ao carregar pedidos");
       const data = await res.json();
       setPedidos(data);
@@ -49,29 +59,86 @@ export default function CadastroPedido() {
     }
   };
 
+  const fetchOrganizacoes = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Usuário não autenticado");
+
+      const res = await fetch("http://192.168.15.8:8080/organizacoes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Erro ao buscar organizações");
+      const data = await res.json();
+      setOrganizacoes(data);
+    } catch (error) {
+      Alert.alert("Erro", error instanceof Error ? error.message : "Erro desconhecido");
+    }
+  };
+
   const handleCreate = async () => {
-    if (!titulo.trim() || !prioridade) {
-      Alert.alert("Erro", "Título e prioridade são obrigatórios");
+    if (!titulo.trim() || !organizacaoSelecionada) {
+      Alert.alert("Erro", "Título e organização são obrigatórios");
       return;
     }
+
     setLoading(true);
     try {
-      const res = await fetch("http://192.168.15.38:8080/pedidos", {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Usuário não autenticado");
+
+      const res = await fetch("http://192.168.15.8:8080/pedidos", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, descricao, prioridade }),
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          descricao,
+          organizacaoId: organizacaoSelecionada,
+        }),
       });
+
       if (!res.ok) throw new Error("Falha ao criar pedido");
-      Alert.alert("Sucesso", "Pedido criado");
+
+      Alert.alert("Sucesso", "Pedido criado com sucesso");
       setTitulo("");
       setDescricao("");
-      setPrioridade(null);
+      setOrganizacaoSelecionada(null);
       fetchPedidos();
     } catch (error) {
       Alert.alert("Erro", error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = (id: number) => {
+    Alert.alert("Confirmar", "Deseja realmente excluir este pedido?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem("token");
+            if (!token) throw new Error("Usuário não autenticado");
+
+            const res = await fetch(`http://192.168.15.8:8080/pedidos/${id}`, {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (!res.ok) throw new Error("Erro ao excluir pedido");
+            Alert.alert("Sucesso", "Pedido excluído");
+            fetchPedidos();
+          } catch (error) {
+            Alert.alert("Erro", error instanceof Error ? error.message : "Erro ao excluir pedido");
+          }
+        },
+      },
+    ]);
   };
 
   if (loadingList)
@@ -108,16 +175,16 @@ export default function CadastroPedido() {
           placeholderTextColor="#a0a0a0"
         />
 
-        <Text style={styles.label}>Prioridade *</Text>
+        <Text style={styles.label}>Organização *</Text>
         <View style={styles.pickerContainer}>
           <Picker
-            selectedValue={prioridade}
-            onValueChange={(itemValue) => setPrioridade(itemValue as "ALTA" | "MEDIA" | "BAIXA")}
+            selectedValue={organizacaoSelecionada}
+            onValueChange={(itemValue) => setOrganizacaoSelecionada(itemValue)}
             style={styles.picker}
           >
-            <Picker.Item label="Selecione a prioridade" value={null} />
-            {prioridades.map((p) => (
-              <Picker.Item key={p} label={p} value={p} />
+            <Picker.Item label="Selecione uma organização" value={null} />
+            {organizacoes.map((org) => (
+              <Picker.Item key={org.id} label={org.nome} value={org.id} />
             ))}
           </Picker>
         </View>
@@ -139,8 +206,14 @@ export default function CadastroPedido() {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{item.titulo}</Text>
-            <Text style={styles.cardText}>Descrição: {item.descricao || '—'}</Text>
-            <Text style={styles.cardText}>Prioridade: {item.prioridade}</Text>
+            <Text style={styles.cardText}>Descrição: {item.descricao || "—"}</Text>
+            <TouchableOpacity
+              onPress={() => handleDelete(item.id_pedido)}
+              style={styles.deleteBtn}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.deleteBtnText}>Deletar</Text>
+            </TouchableOpacity>
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 40, paddingTop: 10 }}
@@ -194,6 +267,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  deleteBtn: {
+  marginTop: 12,
+  backgroundColor: "#d32f2f",
+  paddingVertical: 12,
+  paddingHorizontal: 28,
+  borderRadius: 14,
+  alignSelf: "flex-start",
+  shadowColor: "#8b0000",
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.6,
+  shadowRadius: 7,
+  elevation: 5,
+},
+deleteBtnText: {
+  color: "#fff",
+  fontWeight: "700",
+  fontSize: 15,
+},
   pickerContainer: {
     backgroundColor: "#fff",
     borderRadius: 14,
