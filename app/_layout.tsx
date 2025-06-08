@@ -3,11 +3,13 @@ import { Slot, Redirect, useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
+import { Stack } from 'expo-router';
 
 export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const segments = useSegments();
   const router = useRouter();
+  return <Stack screenOptions={{ headerShown: false }} />;
 
   useEffect(() => {
     const checkAuth = async () => {
