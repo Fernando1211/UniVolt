@@ -4,6 +4,9 @@
 - Gabrielly Campos Macedo (558962)
 - Rafael Mocoto Magalhães Seo (554992)
 
+## Descrição do Projeto
+Este projeto propõe uma solução inteligente para a gestão de pedidos de organizações voluntárias, automatizando a classificação de prioridade dos pedidos com base no conteúdo da descrição. Utiliza-se uma API de Machine Learning externa para realizar a avaliação, salvando tanto a prioridade no próprio pedido quanto o histórico dessa classificação em uma tabela de log.
+
 
 📦 Sistema de Cadastro de Pedidos – React Native + Spring Boot
 Esta aplicação permite o cadastro, listagem e exclusão de pedidos, vinculados a organizações existentes, com autenticação segura via token JWT. O sistema foi desenvolvido em React Native (frontend) e Spring Boot (backend) como parte de um projeto acadêmico/profissional.
