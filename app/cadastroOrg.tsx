@@ -38,7 +38,7 @@ export default function CadastroOrg() {
   const fetchOrganizacoes = async () => {
     setLoadingList(true);
     try {
-      const res = await fetch('https://suaapi.com/organizacoes');
+      const res = await fetch('http://192.168.15.38:8080/organizacoes');
       if (!res.ok) throw new Error('Erro ao carregar organizações');
       const data = await res.json();
       setOrganizacoes(data);
@@ -56,7 +56,7 @@ export default function CadastroOrg() {
     }
     setLoading(true);
     try {
-      const res = await fetch('https://suaapi.com/organizacoes', {
+      const res = await fetch('http://192.168.15.38:8080/organizacoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome, tipo, contato }),
@@ -81,7 +81,7 @@ export default function CadastroOrg() {
         text: 'Sim',
         onPress: async () => {
           try {
-            const res = await fetch(`https://suaapi.com/organizacoes/${id_organizacao}`, {
+            const res = await fetch('http://192.168.15.38:8080/${id_organizacao}', {
               method: 'DELETE',
             });
             if (!res.ok) throw new Error('Erro ao deletar organização');

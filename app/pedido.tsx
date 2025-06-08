@@ -38,7 +38,7 @@ export default function CadastroPedido() {
   const fetchPedidos = async () => {
     setLoadingList(true);
     try {
-      const res = await fetch("https://localhost:8080/pedidos");
+      const res = await fetch("http://192.168.15.38:8080/pedidos");
       if (!res.ok) throw new Error("Falha ao carregar pedidos");
       const data = await res.json();
       setPedidos(data);
@@ -56,7 +56,7 @@ export default function CadastroPedido() {
     }
     setLoading(true);
     try {
-      const res = await fetch("https://localhost:8080/pedidos", {
+      const res = await fetch("http://192.168.15.38:8080/pedidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ titulo, descricao, prioridade }),

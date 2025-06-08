@@ -24,7 +24,7 @@ type Usuario = {
   role?: 'ADMIN' | 'USER';
 };
 
-const API_URL = 'http://10.3.46.35:8080';
+const API_URL = 'http://192.168.15.38:8080';
 
 export default function CadastroUsuario() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -84,7 +84,7 @@ export default function CadastroUsuario() {
     });
   };
 
-  const handleCreate = async () => {
+    const handleCreate = async () => {
     const { nome, email, senha } = form;
 
     if (!nome || !email || !senha) {
@@ -94,11 +94,19 @@ export default function CadastroUsuario() {
 
     setLoading(true);
     try {
+      const payload = {
+        ...form,
+        habilidades: form.habilidades
+          ? form.habilidades.split(',').map((h) => h.trim())
+          : [],
+      };
+
       const res = await fetch(`${API_URL}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error('Erro ao criar usuário');
       Alert.alert('Sucesso', 'Usuário cadastrado');
       clearForm();
@@ -109,6 +117,7 @@ export default function CadastroUsuario() {
       setLoading(false);
     }
   };
+
 
   const handleDelete = (id_usuario: number) => {
     Alert.alert('Confirmação', 'Deseja deletar este usuário?', [
