@@ -1,32 +1,42 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons } from '@expo/vector-icons';
- 
+
 const { width } = Dimensions.get('window');
- 
-const menuItems = [
-  { label: 'Usuário', icon: 'person', route: '/cadastroUsuario' },
-  { label: 'Voluntário', icon: 'volunteer-activism', route: '/cadastroVoluntario' },
-  { label: 'Organizações', icon: 'apartment', route: '/cadastroOrg' },
-  { label: 'Pedidos', icon: 'assignment', route: '/pedido' },
-  { label: 'Oportunidades', icon: 'work', route: '/oportunidades' },
-];
- 
+
 export default function Home() {
+  const router = useRouter();
+
   return (
     <LinearGradient colors={['#4A90E2', '#357ABD']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Botão de login no topo */}
+        <View style={styles.loginBtnContainer}>
+          <TouchableOpacity
+            style={styles.loginBtn}
+            onPress={() => router.push('/auth/login')}
+          >
+            <Text style={styles.loginText}>Login</Text>
+          </TouchableOpacity>
+        </View>
+
         <Text style={styles.header}>Voluntariado App</Text>
         <Text style={styles.subheader}>Conectando pessoas e oportunidades</Text>
       </ScrollView>
     </LinearGradient>
   );
 }
- 
-const CARD_SIZE = (width - 72) / 2; // considerando padding horizontal e espaçamento
- 
+
+const CARD_SIZE = (width - 72) / 2;
+
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
@@ -35,6 +45,24 @@ const styles = StyleSheet.create({
     paddingVertical: 50,
     paddingHorizontal: 24,
     alignItems: 'center',
+  },
+  loginBtnContainer: {
+    width: '100%',
+    alignItems: 'flex-end',
+    marginBottom: 20,
+  },
+  loginBtn: {
+    backgroundColor: '#ffffff30',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'white',
+  },
+  loginText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   header: {
     fontSize: 34,
@@ -49,40 +77,5 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     textAlign: 'center',
     fontWeight: '600',
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    width: CARD_SIZE,
-    height: CARD_SIZE,
-    marginBottom: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-    padding: 16,
-  },
-  cardIcon: {
-    marginBottom: 12,
-  },
-  cardLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#357ABD',
-    textAlign: 'center',
-  },
-  footer: {
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 40,
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
