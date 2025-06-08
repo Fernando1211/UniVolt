@@ -1,3 +1,10 @@
+## Integrantes (rm):
+
+- Fernando Henrique Vilela Aguiar (557525)
+- Gabrielly Campos Macedo (558962)
+- Rafael Mocoto Magalhães Seo (554992)
+
+
 📦 Sistema de Cadastro de Pedidos – React Native + Spring Boot
 Esta aplicação permite o cadastro, listagem e exclusão de pedidos, vinculados a organizações existentes, com autenticação segura via token JWT. O sistema foi desenvolvido em React Native (frontend) e Spring Boot (backend) como parte de um projeto acadêmico/profissional.
 
@@ -17,22 +24,14 @@ Esta aplicação permite o cadastro, listagem e exclusão de pedidos, vinculados
 🛠️ Tecnologias Utilizadas
 Frontend (Mobile)
 React Native
-
 AsyncStorage
-
 @react-native-picker/picker
-
 TypeScript
-
 Backend (API REST)
 Spring Boot
-
 Spring Security
-
 JWT (Auth0)
-
 JPA / Hibernate
-
 Banco de dados: Oracle ou PostgreSQL (configurável)
 
 🚀 Como executar o projeto
