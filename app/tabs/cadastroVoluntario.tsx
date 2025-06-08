@@ -37,6 +37,7 @@ export default function CadastroVoluntario() {
   const fetchVoluntarios = async () => {
     setLoadingList(true);
     try {
+<<<<<<< HEAD
       const token = await AsyncStorage.getItem('token');
       if (!token) throw new Error('Usuário não autenticado');
 
@@ -49,6 +50,17 @@ export default function CadastroVoluntario() {
       if (!res.ok) throw new Error('Erro ao carregar voluntários');
       const data = await res.json();
       setVoluntarios(data);
+=======
+      const [resUsuarios, resVoluntarios] = await Promise.all([
+        fetch('http://192.168.15.8:8080/users'),
+        fetch('http://192.168.15.8:8080/users'),
+      ]);
+      if (!resUsuarios.ok || !resVoluntarios.ok) throw new Error('Falha ao carregar dados');
+      const usuariosJson = await resUsuarios.json();
+      const voluntariosJson = await resVoluntarios.json();
+      setUsuarios(usuariosJson);
+      setVoluntarios(voluntariosJson);
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
     } catch (error) {
       Alert.alert('Erro', error instanceof Error ? error.message : 'Erro desconhecido');
     } finally {
@@ -64,10 +76,14 @@ export default function CadastroVoluntario() {
 
     setLoading(true);
     try {
+<<<<<<< HEAD
       const token = await AsyncStorage.getItem('token');
       if (!token) throw new Error('Usuário não autenticado');
 
       const res = await fetch('http://192.168.15.38:8080/voluntarios', {
+=======
+      const res = await fetch('http://192.168.15.8:8080/voluntarios', {
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,10 +110,14 @@ export default function CadastroVoluntario() {
         text: 'Sim',
         onPress: async () => {
           try {
+<<<<<<< HEAD
             const token = await AsyncStorage.getItem('token');
             if (!token) throw new Error('Usuário não autenticado');
 
             const res = await fetch(`http://192.168.15.38:8080/voluntarios/${id_voluntario}`, {
+=======
+            const res = await fetch('http://192.168.15.8:8080/voluntarios/${id_voluntario}', {
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
               method: 'DELETE',
               headers: {
                 'Authorization': `Bearer ${token}`,

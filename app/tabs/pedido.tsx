@@ -13,11 +13,20 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const API_URL = "http://192.168.15.8:8080";
 
 type Pedido = {
-  id_pedido: number;
-  titulo: string;
+  id: number;
   descricao: string;
+<<<<<<< HEAD
+=======
+  prioridade: "ALTA" | "MEDIA" | "BAIXA";
+  dataPedido: string;
+  status: string;
+  organizacao: { id: number; nome?: string };
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
 };
 
 type Organizacao = {
@@ -26,10 +35,13 @@ type Organizacao = {
 };
 
 export default function CadastroPedido() {
-  const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
+<<<<<<< HEAD
   const [organizacoes, setOrganizacoes] = useState<Organizacao[]>([]);
   const [organizacaoSelecionada, setOrganizacaoSelecionada] = useState<number | null>(null);
+=======
+  const [prioridade, setPrioridade] = useState<"ALTA" | "MEDIA" | "BAIXA" | null>(null);
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
@@ -43,6 +55,7 @@ export default function CadastroPedido() {
     setLoadingList(true);
     try {
       const token = await AsyncStorage.getItem("token");
+<<<<<<< HEAD
       if (!token) throw new Error("Usuário não autenticado");
 
       const res = await fetch("http://192.168.15.8:8080/pedidos", {
@@ -50,10 +63,17 @@ export default function CadastroPedido() {
       });
 
       if (!res.ok) throw new Error("Falha ao carregar pedidos");
+=======
+      const res = await fetch(`${API_URL}/pedidos`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Erro ao buscar pedidos");
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
       const data = await res.json();
-      setPedidos(data);
+      setPedidos(data.content || data);
     } catch (error) {
-      Alert.alert("Erro", error instanceof Error ? error.message : "Erro desconhecido");
+      console.error("Erro ao carregar pedidos", error);
+      setPedidos([]);
     } finally {
       setLoadingList(false);
     }
@@ -77,14 +97,20 @@ export default function CadastroPedido() {
   };
 
   const handleCreate = async () => {
+<<<<<<< HEAD
     if (!titulo.trim() || !organizacaoSelecionada) {
       Alert.alert("Erro", "Título e organização são obrigatórios");
+=======
+    if (!descricao.trim() || !prioridade) {
+      Alert.alert("Erro", "Descrição e prioridade são obrigatórias");
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
       return;
     }
 
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("token");
+<<<<<<< HEAD
       if (!token) throw new Error("Usuário não autenticado");
 
       const res = await fetch("http://192.168.15.8:8080/pedidos", {
@@ -103,16 +129,42 @@ export default function CadastroPedido() {
 
       Alert.alert("Sucesso", "Pedido criado com sucesso");
       setTitulo("");
+=======
+      const orgId = await AsyncStorage.getItem("organizacaoId"); // <-- importante
+
+      if (!token || !orgId) throw new Error("Token ou organização não encontrada");
+
+      const payload = {
+        descricao,
+        prioridade,
+        organizacao: { id: Number(orgId) },
+      };
+
+      const res = await fetch(`${API_URL}/pedidos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Erro ao criar pedido");
+
+      Alert.alert("Sucesso", "Pedido cadastrado");
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
       setDescricao("");
       setOrganizacaoSelecionada(null);
       fetchPedidos();
     } catch (error) {
-      Alert.alert("Erro", error instanceof Error ? error.message : "Erro desconhecido");
+      console.error("Erro ao criar pedido:", error);
+      Alert.alert("Erro", "Erro ao tentar salvar o pedido. Verifique sua conexão ou tente novamente.");
     } finally {
       setLoading(false);
     }
   };
 
+<<<<<<< HEAD
   const handleDelete = (id: number) => {
     Alert.alert("Confirmar", "Deseja realmente excluir este pedido?", [
       { text: "Cancelar", style: "cancel" },
@@ -142,31 +194,22 @@ export default function CadastroPedido() {
   };
 
   if (loadingList)
+=======
+  if (loadingList) {
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3366FF" />
       </View>
     );
+  }
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.formContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Cadastro de Pedido</Text>
 
-        <Text style={styles.label}>Título *</Text>
-        <TextInput
-          style={styles.input}
-          value={titulo}
-          onChangeText={setTitulo}
-          placeholder="Digite o título"
-          placeholderTextColor="#a0a0a0"
-        />
-
-        <Text style={styles.label}>Descrição</Text>
+        <Text style={styles.label}>Descrição *</Text>
         <TextInput
           style={styles.input}
           value={descricao}
@@ -178,8 +221,13 @@ export default function CadastroPedido() {
         <Text style={styles.label}>Organização *</Text>
         <View style={styles.pickerContainer}>
           <Picker
+<<<<<<< HEAD
             selectedValue={organizacaoSelecionada}
             onValueChange={(itemValue) => setOrganizacaoSelecionada(itemValue)}
+=======
+            selectedValue={prioridade}
+            onValueChange={(val) => setPrioridade(val as any)}
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
             style={styles.picker}
           >
             <Picker.Item label="Selecione uma organização" value={null} />
@@ -192,7 +240,7 @@ export default function CadastroPedido() {
         {loading ? (
           <ActivityIndicator size="small" color="#3366FF" style={{ marginTop: 20 }} />
         ) : (
-          <TouchableOpacity style={styles.button} onPress={handleCreate} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.button} onPress={handleCreate}>
             <Text style={styles.buttonText}>Criar Pedido</Text>
           </TouchableOpacity>
         )}
@@ -202,9 +250,10 @@ export default function CadastroPedido() {
 
       <FlatList
         data={pedidos}
-        keyExtractor={(item) => item.id_pedido.toString()}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.card}>
+<<<<<<< HEAD
             <Text style={styles.cardTitle}>{item.titulo}</Text>
             <Text style={styles.cardText}>Descrição: {item.descricao || "—"}</Text>
             <TouchableOpacity
@@ -214,6 +263,13 @@ export default function CadastroPedido() {
             >
               <Text style={styles.deleteBtnText}>Deletar</Text>
             </TouchableOpacity>
+=======
+            <Text style={styles.cardTitle}>{item.descricao}</Text>
+            <Text style={styles.cardText}>Prioridade: {item.prioridade}</Text>
+            <Text style={styles.cardText}>Status: {item.status}</Text>
+            <Text style={styles.cardText}>Data: {item.dataPedido}</Text>
+            <Text style={styles.cardText}>Organização: {item.organizacao?.id}</Text>
+>>>>>>> 5094279dbf22a1f6340fc6227c1dba18ec3be309
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 40, paddingTop: 10 }}
@@ -224,48 +280,15 @@ export default function CadastroPedido() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#e9f0ff",
-    paddingTop: Platform.OS === "android" ? 25 : 45,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: "#e9f0ff",
-  },
-  formContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: "#1a237e",
-    marginBottom: 28,
-    alignSelf: "center",
-    letterSpacing: 0.8,
-  },
-  label: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#303f9f",
-    marginBottom: 8,
-  },
+  container: { flex: 1, backgroundColor: "#e9f0ff", paddingTop: Platform.OS === "android" ? 25 : 45 },
+  loadingContainer: { flex: 1, justifyContent: "center", backgroundColor: "#e9f0ff" },
+  formContainer: { paddingHorizontal: 24, paddingBottom: 20 },
+  title: { fontSize: 30, fontWeight: "800", color: "#1a237e", marginBottom: 28, alignSelf: "center" },
+  label: { fontSize: 17, fontWeight: "600", color: "#303f9f", marginBottom: 8 },
   input: {
-    backgroundColor: "#fff",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    fontSize: 17,
-    borderRadius: 14,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#bbdefb",
-    shadowColor: "#5677fc",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: "#fff", paddingVertical: 14, paddingHorizontal: 18, fontSize: 17,
+    borderRadius: 14, marginBottom: 20, borderWidth: 1, borderColor: "#bbdefb",
+    shadowColor: "#5677fc", shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 4,
   },
   deleteBtn: {
   marginTop: 12,
@@ -286,64 +309,20 @@ deleteBtnText: {
   fontSize: 15,
 },
   pickerContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#bbdefb",
-    marginBottom: 20,
-    overflow: "hidden",
-    elevation: 3,
+    backgroundColor: "#fff", borderRadius: 14, borderWidth: 1, borderColor: "#bbdefb", marginBottom: 20,
+    overflow: "hidden", elevation: 3,
   },
-  picker: {
-    height: 50,
-    width: "100%",
-  },
+  picker: { height: 50, width: "100%" },
   button: {
-    backgroundColor: "#1a237e",
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    marginBottom: 36,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 7 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: "#1a237e", paddingVertical: 16, borderRadius: 16, alignItems: "center", marginBottom: 36,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
   },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: 18,
-    letterSpacing: 1,
-  },
-  listTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 16,
-    color: "#1a237e",
-    paddingLeft: 24,
-  },
+  buttonText: { color: "#fff", fontWeight: "800", fontSize: 18 },
+  listTitle: { fontSize: 24, fontWeight: "700", marginBottom: 16, color: "#1a237e", paddingLeft: 24 },
   card: {
-    backgroundColor: "#fff",
-    padding: 20,
-    marginHorizontal: 24,
-    marginBottom: 18,
-    borderRadius: 20,
-    shadowColor: "#223366",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: "#fff", padding: 20, marginHorizontal: 24, marginBottom: 18, borderRadius: 20,
+    shadowColor: "#223366", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 6,
   },
-  cardTitle: {
-    fontWeight: "800",
-    fontSize: 20,
-    color: "#1a237e",
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 16,
-    color: "#4250a1",
-    marginBottom: 6,
-  },
+  cardTitle: { fontWeight: "800", fontSize: 20, color: "#1a237e", marginBottom: 8 },
+  cardText: { fontSize: 16, color: "#4250a1", marginBottom: 6 },
 });

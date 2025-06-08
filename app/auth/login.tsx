@@ -5,7 +5,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-const API_URL = 'http://192.168.15.38:8080';
+const API_URL = 'http://192.168.15.8:8080';
 
 export default function Login() {
   const [isCadastro, setIsCadastro] = useState(false);
