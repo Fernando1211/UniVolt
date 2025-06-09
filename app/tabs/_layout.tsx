@@ -31,15 +31,7 @@ export default function Layout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="cadastroVoluntario"
-        options={{
-          title: 'Cadastro Voluntário',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      
       <Tabs.Screen
         name="cadastroOrg"
         options={{
